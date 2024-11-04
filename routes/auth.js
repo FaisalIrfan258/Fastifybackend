@@ -1,22 +1,35 @@
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
 async function authRoutes(fastify, options) {
-    const db = fastify.mongo.db; // Access the MongoDB instance
-    
-    fastify.post('/signup', async (request, reply) => {
-      const { username, password } = request.body;
-      const result = await db.collection('users').insertOne({ username, password });
-      reply.send({ message: 'User created', userId: result.insertedId });
-    });
-  
-    fastify.post('/signin', async (request, reply) => {
-      const { username, password } = request.body;
-      const user = await db.collection('users').findOne({ username, password });
-      if (user) {
-        reply.send({ message: 'Sign-in successful' });
-      } else {
-        reply.status(401).send({ message: 'Invalid credentials' });
-      }
-    });
-  }
-  
-  module.exports = authRoutes;
-  
+  const db = fastify.mongo.db;
+  const user = new User(db);
+
+  // Signup Route
+  fastify.post('/signup', async (request, reply) => {
+    const { email, password } = request.body;
+
+    const existingUser = await user.findByEmail(email);
+    if (existingUser) {
+      return reply.status(400).send({ error: 'User already exists' });
+    }
+
+    await user.createUser(email, password);
+    return reply.send({ message: 'User registered successfully' });
+  });
+
+  // Signin Route
+  fastify.post('/signin', async (request, reply) => {
+    const { email, password } = request.body;
+    const foundUser = await user.findByEmail(email);
+
+    if (!foundUser || !(await user.validatePassword(password, foundUser.password))) {
+      return reply.status(400).send({ error: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ id: foundUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return reply.send({ token });
+  });
+}
+
+module.exports = authRoutes;
