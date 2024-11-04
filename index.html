@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Data Viewer</title>
+</head>
+<body>
+  <h1>View API Data</h1>
+  <button id="fetchDataButton">Fetch Data</button>
+  <pre id="apiData"></pre>
+
+  <script>
+    document.getElementById('fetchDataButton').addEventListener('click', () => {
+      fetch('https://fastifybackend.vercel.app/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: 'testuser', password: 'testpass' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('apiData').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.getElementById('apiData').textContent = 'Error fetching data: ' + error;
+      });
+    });
+  </script>
+</body>
+</html>
