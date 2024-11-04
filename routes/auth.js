@@ -7,14 +7,14 @@ async function authRoutes(fastify, options) {
 
   // Signup Route
   fastify.post('/signup', async (request, reply) => {
-    const { email, password } = request.body;
+    const { email, password, fullName } = request.body;  // Extract fullName
 
     const existingUser = await user.findByEmail(email);
     if (existingUser) {
       return reply.status(400).send({ error: 'User already exists' });
     }
 
-    await user.createUser(email, password);
+    await user.createUser(email, password, fullName);  // Pass fullName to createUser
     return reply.send({ message: 'User registered successfully' });
   });
 

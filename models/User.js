@@ -5,11 +5,12 @@ module.exports = class User {
     this.collection = db.collection('users');
   }
 
-  async createUser(email, password) {
+  async createUser(email, password, fullName) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await this.collection.insertOne({
       email,
       password: hashedPassword,
+      fullName,  // Add full name to user document
     });
     return result;
   }
